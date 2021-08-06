@@ -43,7 +43,7 @@ def get_favourite(screen_name, tweet_ids):
     options.add_argument("start-maximized")
     options.add_argument("window-size=1900,1080")
     options.add_argument("--log-level=3")
-    scraper = webdriver.Chrome(options=options, executable_path='chromedriver.exe')
+    scraper = webdriver.Chrome(options=options, executable_path='./chromedriver')
     scraper.get("https://www.twitter.com/login")
     sleep(10)
     scraper.find_element_by_name("session[username_or_email]").send_keys(credentials["username"])
