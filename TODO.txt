@@ -1,0 +1,34 @@
+1: I have to retrive user post from past 14 days
+2: I have to check who liked those post
+3: Check who has follower less than 800 and under 30
+4: Check all the follower of the user
+
+
+
+ consumer_key: "M2Jgsi7GWeyXJ3igJWJp529VV"
+    consumer_secret: "WOAKOwzhlYf7fCZFKQI4UVv7ZYUHhKRpmysskwILWs07VXx0za"
+    access_token: "1400380598942830592-nUNiTzCcdNc4KaOvAMsTPYNnv8BT7T"
+    access_token_secret: "eRBPFunnc6a3TYQhJEYiyfQJaEoeGqaiXWs0TMTyCaYKt"
+
+
+
+auth = tweepy.OAuthHandler(TwitterCredential.consumer_key, TwitterCredential.consumer_secret)
+auth.set_access_token(TwitterCredential.access_token, TwitterCredential.access_token_secret)
+
+
+
+
+
+
+
+
+
+ BOLD is * bold * without the spaces
+Italics is the same, but with underscore , _ italics _
+ - can -
+
+
+
+
+
+datetime.datetime(2021, 8, 3, 15, 52, 56), 1422586291732971527, 'A good 6-8 months have gone by since NFTs have gone bonkers mainstream
