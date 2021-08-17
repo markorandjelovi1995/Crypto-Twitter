@@ -12417,3 +12417,7 @@ select#locale {
 }
 
 /*# sourceMappingURL=style.css.map */
+.multi-tables {
+  width: 100%;
+  padding: 20px 40px 10px 20px;
+}

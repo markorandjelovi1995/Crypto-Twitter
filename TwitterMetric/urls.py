@@ -21,6 +21,4 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", ScraperViews.index),
-    path("datatable/", ScraperViews.datatable),
-    path("ajaxdata/", ScraperViews.ajaxdata),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

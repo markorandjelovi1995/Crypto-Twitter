@@ -14,7 +14,7 @@ import json
 def get_tweet(screen_name):
     tweets_list = []
     tweet_ids = []
-    number_of_recent_post = 10
+    number_of_recent_post = 100
     historical_tweet_date = datetime.now() - timedelta(14)
     tweets = tweepy.Cursor(api.user_timeline, id=screen_name).items(number_of_recent_post)
 
@@ -70,31 +70,31 @@ def get_favourite(screen_name, tweet_ids):
 
 
 def get_user_all_follower_info(screen_name, screen_name_list):
-    follower_screen_name_list = []
-    followers_id = []
+    friend_screen_name_list = []
+    friend_ids = []
     count = 0
 
-    for page in tweepy.Cursor(api.followers_ids, screen_name=screen_name).pages():
-        followers_id.extend(page)
+    for page in tweepy.Cursor(api.friends_ids, screen_name=screen_name).pages():
+        friend_ids.extend(page)
 
-    print(f"{screen_name} follower count : {len(followers_id)}")
+    print(f"{screen_name} following count : {len(friend_ids)}")
 
-    for follower_id in followers_id:
+    for friend_id in friend_ids:
         try:
             count += 1
             print(f"Profile checked : {count}")
-            follower_info = api.get_user(follower_id)
-            follower_screen_name_list.append(follower_info.screen_name)
-            print(f"Scraping Follower Info of : {screen_name}")
-            print(f"Follower Name: {follower_info.name}")
-            print(f"Follower Screen Name: {follower_info.screen_name}")
-            print(f"Follower Account Age : {follower_info.created_at}")
-            print(f"Follower Followers Count : {follower_info.followers_count}")
-            print(f"Follower Following Count : {follower_info.friends_count}")
+            friend_info = api.get_user(friend_id)
+            friend_screen_name_list.append(friend_info.screen_name)
+            print(f"Scraping Friend Info of : {screen_name}")
+            print(f"Friend Name: {friend_info.name}")
+            print(f"Friend Screen Name: {friend_info.screen_name}")
+            print(f"Friend Account Age : {friend_info.created_at}")
+            print(f"Friend Followers Count : {friend_info.followers_count}")
+            print(f"Friend Following Count : {friend_info.friends_count}")
             print("\n")
         except tweepy.TweepError:
             print(f"Failed to get {screen_name} follower info this user has protection enable")
-    cross_check_screen_name(screen_name_list, follower_screen_name_list, screen_name, "Important_Person")
+    cross_check_screen_name(screen_name_list, friend_screen_name_list, screen_name, "Important_Person")
 
 
 def get_new_vip_account(screen_name):
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     screen_name_list = Path("test_screen_name.txt").read_text().split()
     while True:
         for screen_name in screen_name_list:
-            get_new_vip_account(screen_name)
+            #get_new_vip_account(screen_name)
             get_user_all_follower_info(screen_name, screen_name_list)
             #get_tweet(screen_name)
         print("WAITING FOR 1 MIN ")
