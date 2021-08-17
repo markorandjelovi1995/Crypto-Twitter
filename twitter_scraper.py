@@ -159,9 +159,9 @@ if __name__ == "__main__":
     screen_name_list = Path("test_screen_name.txt").read_text().split()
     while True:
         for screen_name in screen_name_list:
-            #get_new_vip_account(screen_name)
+            get_new_vip_account(screen_name)
             get_user_all_follower_info(screen_name, screen_name_list)
-            #get_tweet(screen_name)
+            get_tweet(screen_name)
         print("WAITING FOR 1 MIN ")
         sleep(60)
 
