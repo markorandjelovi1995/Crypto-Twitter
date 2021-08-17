@@ -16,7 +16,6 @@ def get_status_type(
     else:
         return "tweet"
 
-
 def status_to_features(status: tweepy.Status) -> Dict[str, float]:
     status_json = status._json
     status_type = get_status_type(status)
