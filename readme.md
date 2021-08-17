@@ -31,6 +31,20 @@ Go inside the project folder after that type the following command
 pipenv install
 pipenv shell
 ```
+## Credentials Json
+
+There is a file call credentials.json edit that file with your twitter API info and login info.
+
+{   
+
+  "api_key": "your_api_key",  
+  "api_secret": "your_api_secret",  
+  "token_access": "your_token_access",  
+  "token_secret": "your_token_secret",  
+  "username": "your_username",  
+  "password": "your_password"  
+
+}
 
 # Running the program
 
