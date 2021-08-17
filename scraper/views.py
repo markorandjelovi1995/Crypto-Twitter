@@ -63,5 +63,5 @@ def datatable(request):
                                           "vip_point": row[2], "url": row[3],
                                           "timestamp": row[4]})
 
-    return render(request, "scraper\Dashmin_Dark\Dashmin_html\indextest.html",
+    return render(request, "scraper\Dashmin_Dark\Dashmin_html\index.html",
                   {"important_person_all_data": important_person_all_data})
