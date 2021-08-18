@@ -198,7 +198,7 @@ def cross_check_screen_name(screen_name_list, returned_screen_name, influencer_s
 credentials = json.loads(Path("credentials.json").read_text())
 auth = tweepy.OAuthHandler(credentials["api_key"], credentials["api_secret"])
 auth.set_access_token(credentials["token_access"], credentials["token_secret"])
-api = tweepy.API(auth, wait_on_rate_limit=True)
+api = tweepy.API(auth, wait_on_rate_limit=True,retry_count=100,retry_delay=60,timeout=999999,wait_on_rate_limit_notify=True)
 
 if __name__ == "__main__":
     screen_name_list = Path("test_screen_name.txt").read_text().split()
