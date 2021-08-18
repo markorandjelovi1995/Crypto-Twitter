@@ -5,32 +5,39 @@ from pprint import pprint
 from datetime import datetime, timedelta
 from time import sleep
 import re
-import numpy as np
 from pathlib import Path
 import sqlite3
 import json
 
 
-def get_tweet(screen_name):
+def get_tweet(screen_name_list):
+    tweet_dict = {}
     tweets_list = []
     tweet_ids = []
-    number_of_recent_post = 100
-    historical_tweet_date = datetime.now() - timedelta(14)
-    tweets = tweepy.Cursor(api.user_timeline, id=screen_name).items(number_of_recent_post)
+    number_of_recent_post = 2
 
-    for tweet in tweets:
-        if tweet.created_at > historical_tweet_date:
-            tweets_list.append([tweet.created_at, tweet.id, tweet.text])
-        else:
-            break
+    for screen_name in screen_name_list:
+        print(screen_name)
+        historical_tweet_date = datetime.now() - timedelta(14)
+        tweets = tweepy.Cursor(api.user_timeline, id=screen_name).items(number_of_recent_post)
 
-    pprint(tweets_list)
-    for tweet_id in tweets_list:
-        tweet_ids.append(tweet_id[1])
-    get_favourite(screen_name, tweet_ids)
+        for tweet in tweets:
+            if tweet.created_at > historical_tweet_date:
 
+                tweets_list.append([tweet.created_at, tweet.id, tweet.text])
+            else:
+                break
 
-def get_favourite(screen_name, tweet_ids):
+        pprint(tweets_list)
+        for tweet_id in tweets_list:
+            tweet_ids.append(tweet_id[1])
+        tweet_dict[screen_name] = tweet_ids
+        tweets_list = []
+        tweet_ids = []
+    return tweet_dict
+
+def get_favourite(screen_name_list):
+    tweet_info = get_tweet(screen_name_list)
     screen_name_regex = re.compile(r"@[a-zA-Z0-9]+")
     get_screen_name = []
     options = Options()
@@ -44,31 +51,46 @@ def get_favourite(screen_name, tweet_ids):
     options.add_argument("window-size=1900,1080")
     options.add_argument("--log-level=3")
     try:
-        scraper = webdriver.Chrome(options=options, executable_path='chromedriver.exe')
-    except:
         scraper = webdriver.Chrome(options=options, executable_path='./chromedriver')
+    except:
+        scraper = webdriver.Chrome(options=options, executable_path='chromedriver.exe')
     scraper.get("https://www.twitter.com/login")
+    sleep(7)
+    while True:
+        try:
+            scraper.find_element_by_name("session[username_or_email]").send_keys(credentials["username"])
+            break
+        except:
+            print("Username element not found")
+    while True:
+        try:
+            scraper.find_element_by_name("session[password]").send_keys(credentials["password"] + "\n")
+            break
+        except:
+            print("Password element not found")
+    print("login done")
     sleep(10)
-    scraper.find_element_by_name("session[username_or_email]").send_keys(credentials["username"])
-    scraper.find_element_by_name("session[password]").send_keys(credentials["password"] + "\n")
-    sleep(15)
-    
-    for tweet_id in tweet_ids:
-        scraper.get(f"https://www.twitter.com/{screen_name}/status/{tweet_id}")
-        sleep(15)
-        scraper.get(f"{scraper.current_url}/likes")
-        sleep(20)
-                
-        for i in scraper.find_elements_by_class_name("r-14j79pv"):
-            if i.get_attribute("dir") == "ltr":
-                found_screen_name = screen_name_regex.findall(i.text)
-                if found_screen_name:
-                    print(i.text)
-                    get_screen_name.append(str(found_screen_name[0]).replace("@", ""))
 
-    get_screen_name = np.unique(get_screen_name)
-    print(get_screen_name)
-    cross_check_screen_name(screen_name_list, get_screen_name, screen_name, "Important_Tweet")
+    for screen_name, tweet_ids in tweet_info.items():
+        print(screen_name, tweet_ids)
+        if not tweet_ids:
+            continue
+        for tweet_id in tweet_ids:
+            scraper.get(f"https://www.twitter.com/{screen_name}/status/{tweet_id}/likes")
+            sleep(15)
+
+            for i in scraper.find_elements_by_class_name("r-14j79pv"):
+                if i.get_attribute("dir") == "ltr":
+                    found_screen_name = screen_name_regex.findall(i.text)
+                    if found_screen_name:
+                        print(i.text)
+                        get_screen_name.append(str(found_screen_name[0]).replace("@", ""))
+
+            print(get_screen_name)
+            cross_check_screen_name(screen_name_list, get_screen_name,
+                                    screen_name, "Important_Tweet",
+                                    f"https://www.twitter.com/{screen_name}/status/{tweet_id}")
+            get_screen_name = []
     scraper.quit()
 
 
@@ -116,7 +138,8 @@ def get_new_vip_account(screen_name):
         print(user.screen_name)
 
         if user.followers_count <= 800:
-            print(f"New VIP account condition met for {user.screen_name}: {user.followers_count}, {user.created_at}, {user.url}")
+            print(
+                f"New VIP account condition met for {user.screen_name}: {user.followers_count}, {user.created_at}, {user.url}")
             conn = sqlite3.connect('database.db')
             conn.execute(f'''CREATE TABLE IF NOT EXISTS New_Account 
                              (ID INTEGER PRIMARY KEY  AUTOINCREMENT   NOT NULL,
@@ -126,12 +149,13 @@ def get_new_vip_account(screen_name):
                              Website_URL TEXT,
                              Scraping_Timestamp TEXT NOT NULL);''')
             conn.execute(f"INSERT INTO New_Account (Screen_Name, Follower_count, Account_Creation_Date, Website_URL, Scraping_Timestamp) \
-                          VALUES (?,?,?,?,?)", (user.screen_name, user.followers_count, user.created_at, user.url, datetime.now()))
+                          VALUES (?,?,?,?,?)",
+                         (user.screen_name, user.followers_count, user.created_at, user.url, datetime.now()))
             conn.commit()
             conn.close()
 
 
-def cross_check_screen_name(screen_name_list, returned_screen_name, influencer_screen_name, table_name):
+def cross_check_screen_name(screen_name_list, returned_screen_name, influencer_screen_name, table_name,tweet=""):
     vip_point = 0
 
     for screen_name in returned_screen_name:
@@ -141,17 +165,35 @@ def cross_check_screen_name(screen_name_list, returned_screen_name, influencer_s
     print(f"{influencer_screen_name} VIP POINT is : {vip_point}")
 
     if vip_point:
-        conn = sqlite3.connect('database.db')
-        conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_name} 
-                 (ID INTEGER PRIMARY KEY  AUTOINCREMENT   NOT NULL,
-                 Screen_Name           TEXT    NOT NULL,
-                 VIP_Point            INTEGER     NOT NULL,
-                 Website_URL  TEXT,
-                 Timestamp TEXT NOT NULL);''')
-        conn.execute(f"INSERT INTO {table_name} (Screen_Name, VIP_Point, Website_URL,Timestamp) \
-              VALUES (?,?,?,?)", (influencer_screen_name, vip_point, api.get_user(influencer_screen_name).url, datetime.now()))
-        conn.commit()
-        conn.close()
+        if table_name == "Important_Tweet":
+            print(f"VIP {influencer_screen_name}  data have been save")
+            conn = sqlite3.connect('database.db')
+            conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_name} 
+                                 (ID INTEGER PRIMARY KEY  AUTOINCREMENT   NOT NULL,
+                                 Screen_Name           TEXT    NOT NULL,
+                                 VIP_Point            INTEGER     NOT NULL,
+                                 Tweet  TEXT,
+                                 Timestamp TEXT NOT NULL);''')
+            conn.execute(f"INSERT INTO {table_name} (Screen_Name, VIP_Point, Tweet,Timestamp) \
+                              VALUES (?,?,?,?)",
+                         (influencer_screen_name, vip_point, tweet, datetime.now()))
+            conn.commit()
+            conn.close()
+        else:
+            print(f"VIP {influencer_screen_name}  data have been save")
+            conn = sqlite3.connect('database.db')
+            conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_name} 
+                     (ID INTEGER PRIMARY KEY  AUTOINCREMENT   NOT NULL,
+                     Screen_Name           TEXT    NOT NULL,
+                     VIP_Point            INTEGER     NOT NULL,
+                     Website  TEXT,
+                     Timestamp TEXT NOT NULL);''')
+            conn.execute(f"INSERT INTO {table_name} (Screen_Name, VIP_Point, Website_URL,Timestamp) \
+                  VALUES (?,?,?,?)",
+                         (influencer_screen_name, vip_point, api.get_user(influencer_screen_name).url, datetime.now()))
+            conn.commit()
+            conn.close()
+
 
 credentials = json.loads(Path("credentials.json").read_text())
 auth = tweepy.OAuthHandler(credentials["api_key"], credentials["api_secret"])
@@ -163,8 +205,9 @@ if __name__ == "__main__":
     while True:
         for screen_name in screen_name_list:
             get_new_vip_account(screen_name)
+        for screen_name in screen_name_list:
             get_user_all_follower_info(screen_name, screen_name_list)
-            get_tweet(screen_name)
-        print("WAITING FOR 1 MIN ")
-        sleep(60)
 
+        get_favourite(screen_name_list)
+        print("Waiting for 1 minutes ")
+        sleep(60)

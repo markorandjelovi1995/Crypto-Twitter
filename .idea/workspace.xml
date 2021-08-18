@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="19f360eb-b8bb-4eb4-af5e-a7f3a38af51c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/twitter_scraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/twitter_scraper.py" afterDir="false" />
-    </list>
+    <list default="true" id="19f360eb-b8bb-4eb4-af5e-a7f3a38af51c" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +28,7 @@
         <entry file="file://$PROJECT_DIR$/twitter_scraper.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="294">
-              <caret line="45" column="77" lean-forward="true" selection-start-line="45" selection-start-column="77" selection-end-line="45" selection-end-column="77" />
+              <caret line="46" column="85" selection-start-line="46" selection-start-column="81" selection-end-line="46" selection-end-column="85" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -148,12 +145,12 @@
       <updated>1627969954730</updated>
       <workItem from="1627969957204" duration="1015000" />
       <workItem from="1627971545508" duration="1049000" />
-      <workItem from="1629219826750" duration="4497000" />
+      <workItem from="1629219826750" duration="5187000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="6561000" />
+    <option name="totallyTimeSpent" value="7251000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="69" y="23" width="1866" height="1057" extended-state="0" />
@@ -266,7 +263,7 @@
     <entry file="file://$PROJECT_DIR$/twitter_scraper.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="294">
-          <caret line="45" column="77" lean-forward="true" selection-start-line="45" selection-start-column="77" selection-end-line="45" selection-end-column="77" />
+          <caret line="46" column="85" selection-start-line="46" selection-start-column="81" selection-end-line="46" selection-end-column="85" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
