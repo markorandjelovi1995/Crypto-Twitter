@@ -6,8 +6,13 @@ from datetime import datetime, timedelta
 from time import sleep
 import re
 from pathlib import Path
-import sqlite3
 import json
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TwitterMetric.settings')
+django.setup()
+from scraper.models import ImportantPerson, NewAccount, ImportantTweet
 
 
 def get_tweet(screen_name_list):
@@ -22,11 +27,14 @@ def get_tweet(screen_name_list):
         tweets = tweepy.Cursor(api.user_timeline, id=screen_name).items(number_of_recent_post)
 
         for tweet in tweets:
-            if tweet.created_at > historical_tweet_date:
+            try:
+                if tweet.created_at > historical_tweet_date:
 
-                tweets_list.append([tweet.created_at, tweet.id, tweet.text])
-            else:
-                break
+                    tweets_list.append([tweet.created_at, tweet.id, tweet.text])
+                else:
+                    break
+            except Exception as e:
+                print(e)
 
         pprint(tweets_list)
         for tweet_id in tweets_list:
@@ -35,6 +43,7 @@ def get_tweet(screen_name_list):
         tweets_list = []
         tweet_ids = []
     return tweet_dict
+
 
 def get_favourite(screen_name_list):
     tweet_info = get_tweet(screen_name_list)
@@ -131,31 +140,31 @@ def get_new_vip_account(screen_name):
     print(f"{screen_name} Following count: {len(ids)} ")
 
     for i in ids:
-        user = api.get_user(i)
-        count += 1
-        print(f"Profile checked : {count}")
+        try:
+            user = api.get_user(i)
+            count += 1
+            print(f"Profile checked : {count}")
 
-        print(user.screen_name)
+            print(user.screen_name)
 
-        if user.followers_count <= 800:
-            print(
-                f"New VIP account condition met for {user.screen_name}: {user.followers_count}, {user.created_at}, {user.url}")
-            conn = sqlite3.connect('database.db')
-            conn.execute(f'''CREATE TABLE IF NOT EXISTS New_Account 
-                             (ID INTEGER PRIMARY KEY  AUTOINCREMENT   NOT NULL,
-                             Screen_Name           TEXT    NOT NULL,
-                             Follower_Count            INTEGER     NOT NULL,
-                             Account_Creation_Date TEXT  NOT NULL,
-                             Website_URL TEXT,
-                             Scraping_Timestamp TEXT NOT NULL);''')
-            conn.execute(f"INSERT INTO New_Account (Screen_Name, Follower_count, Account_Creation_Date, Website_URL, Scraping_Timestamp) \
-                          VALUES (?,?,?,?,?)",
-                         (user.screen_name, user.followers_count, user.created_at, user.url, datetime.now()))
-            conn.commit()
-            conn.close()
+            if user.followers_count <= 800:
+                print(
+                    f"New VIP account condition met for {user.screen_name}:"
+                    f" {user.followers_count}, {user.created_at}, {user.url}"
+                )
+
+                NewAccount.objects.create(
+                    screen_name=user.screen_name,
+                    follower_count=user.followers_count,
+                    account_creation_date=user.created_at,
+                    website_url=user.url,
+                    timestamp=datetime.strftime(datetime.now(), "%d-%m-%Y %I:%M:%S %p")
+                )
+        except Exception as e:
+            print(e)
 
 
-def cross_check_screen_name(screen_name_list, returned_screen_name, influencer_screen_name, table_name,tweet=""):
+def cross_check_screen_name(screen_name_list, returned_screen_name, influencer_screen_name, table_name, tweet=""):
     vip_point = 0
 
     for screen_name in returned_screen_name:
@@ -167,41 +176,30 @@ def cross_check_screen_name(screen_name_list, returned_screen_name, influencer_s
     if vip_point:
         if table_name == "Important_Tweet":
             print(f"VIP {influencer_screen_name}  data have been save")
-            conn = sqlite3.connect('database.db')
-            conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_name} 
-                                 (ID INTEGER PRIMARY KEY  AUTOINCREMENT   NOT NULL,
-                                 Screen_Name           TEXT    NOT NULL,
-                                 VIP_Point            INTEGER     NOT NULL,
-                                 Tweet  TEXT,
-                                 Timestamp TEXT NOT NULL);''')
-            conn.execute(f"INSERT INTO {table_name} (Screen_Name, VIP_Point, Tweet,Timestamp) \
-                              VALUES (?,?,?,?)",
-                         (influencer_screen_name, vip_point, tweet, datetime.now()))
-            conn.commit()
-            conn.close()
+            ImportantTweet.objects.create(
+                screen_name=influencer_screen_name,
+                vip_point=vip_point,
+                tweet=tweet,
+                timestamp=datetime.strftime(datetime.now(), "%d-%m-%Y %I:%M:%S %p")
+            )
         else:
             print(f"VIP {influencer_screen_name}  data have been save")
-            conn = sqlite3.connect('database.db')
-            conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_name} 
-                     (ID INTEGER PRIMARY KEY  AUTOINCREMENT   NOT NULL,
-                     Screen_Name           TEXT    NOT NULL,
-                     VIP_Point            INTEGER     NOT NULL,
-                     Website  TEXT,
-                     Timestamp TEXT NOT NULL);''')
-            conn.execute(f"INSERT INTO {table_name} (Screen_Name, VIP_Point, Website_URL,Timestamp) \
-                  VALUES (?,?,?,?)",
-                         (influencer_screen_name, vip_point, api.get_user(influencer_screen_name).url, datetime.now()))
-            conn.commit()
-            conn.close()
+            ImportantPerson.objects.create(
+                screen_name=influencer_screen_name,
+                vip_point=vip_point,
+                website_url=api.get_user(influencer_screen_name).url,
+                timestamp=datetime.strftime(datetime.now(), "%d-%m-%Y %I:%M:%S %p")
+            )
 
 
 credentials = json.loads(Path("credentials.json").read_text())
 auth = tweepy.OAuthHandler(credentials["api_key"], credentials["api_secret"])
 auth.set_access_token(credentials["token_access"], credentials["token_secret"])
-api = tweepy.API(auth, wait_on_rate_limit=True,retry_count=100,retry_delay=60,timeout=999999,wait_on_rate_limit_notify=True)
+api = tweepy.API(auth, wait_on_rate_limit=True, retry_count=100,
+                 retry_delay=60, timeout=999999, wait_on_rate_limit_notify=True)
 
 if __name__ == "__main__":
-    screen_name_list = Path("test_screen_name.txt").read_text().split()
+    screen_name_list = Path("crypto_twitter_screen_names.txt").read_text().split()
     while True:
         for screen_name in screen_name_list:
             get_new_vip_account(screen_name)

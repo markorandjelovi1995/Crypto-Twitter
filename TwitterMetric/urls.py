@@ -20,5 +20,6 @@ from django.conf.urls.static import static
 from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("", ScraperViews.index),
+    path("", ScraperViews.index, name="home"),
+    path("test/", ScraperViews.scraper),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

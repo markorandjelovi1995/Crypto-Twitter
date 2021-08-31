@@ -57,4 +57,4 @@ To run the web app locally
 python3 manage.py runserver
 ```
 
-Visit http://127.0.0.1:8000/
+Visit http://127.0.0.1:8000/# Crypto-Twitter
